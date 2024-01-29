@@ -4,10 +4,12 @@ const app = express();
 const mongoose = require("mongoose");
 const userModel = require("./Schema/userSchema");
 const userRoute = require("./Routes/usersRoute");
+const adminRoute = require("./Routes/adminRoute");
 const cors = require("cors");
 const cookies = require("cookie-parser");
 const port = 3005;
 app.use(express.json());
+app.use(cookies()); 
 
 app.use(
   cors({
@@ -17,7 +19,7 @@ app.use(
 );
 
 app.use("/users", userRoute);
-app.use(cookies());
+app.use("/admin", adminRoute);
 
 app.listen(port, (req, res) => {
   console.log("app listening");

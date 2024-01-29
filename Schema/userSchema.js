@@ -20,7 +20,12 @@ const userSchema = new mongoose.Schema({
   },
   cart: Array,
   wishlist: Array,
-  orders: Array,
+  orders: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "order",
+    },
+  ],
 });
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {

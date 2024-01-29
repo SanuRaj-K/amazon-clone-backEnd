@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const userControl = require("../Controllers/userControl");
-const { authToken } = require("../Middlewares/auth");
 
 router.post("/register", userControl.register);
 router.post("/verify", userControl.verifyOTP);
@@ -14,10 +13,12 @@ router.post("/updateuser", userControl.updateUserData);
 router.post("/addtocart", userControl.addToCart);
 router.get("/cartcount/:id", userControl.getCartCount);
 router.get("/viewcart/:id", userControl.viewCart);
+router.get("/getorders/:id", userControl.viewOrder);
 router.delete("/removecart/:id/:prod", userControl.removeCart);
 router.put("/handleqty/:id/:prod", userControl.handleQty);
 router.get("/payment/:id", userControl.payment);
 router.post("/createpayment", userControl.createPayment);
-router.post("/cod", userControl.cod);
+router.post("/cod", userControl.cod);     
+router.get("/orderspec/:id", userControl.orderSpec);
 
 module.exports = router;

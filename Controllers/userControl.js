@@ -1,30 +1,62 @@
 const userModel = require("../Schema/userSchema");
 const productModel = require("../Schema/productSchema");
+const orderModel = require("../Schema/orderSchema");
 const bcrypt = require("bcrypt");
 const generate = require("../Helpers/JWT");
 const stripSK = process.env.STRIPE_KEY;
 const stripe = require("stripe")(stripSK);
- 
 
 const createPayment = async (req, res) => {
   const data = req.body;
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: 2000,
-    currency: 'usd',
-  });
-  res.json({ clientSecret: paymentIntent.client_secret });
+  const products = data.paymentUser;
+  const lineItems = products.map((prod) => ({
+    price_data: {
+      currency: "inr",
+      product_data: {
+        name: prod.Title,
+        images: [prod.Image],
+      },
+      unit_amount: prod.Price * 100,
+    },
+    quantity: prod.quantity,
+  }));
 
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: lineItems,
+    mode: "payment",
+    success_url: "http://localhost:3000/success",
+    cancel_url: "http://localhost:3000/Account",
+  });
+  if (session.id) {
+    const userId = data.id;
+    const user = await userModel.findOne({ email: userId });
+    if (user) {
+      for (prod of products) {
+        user.orders.push(prod);
+        await user.save();
+      }
+    }
+  }
+  res.send(session.id);
 };
 
 const cod = async (req, res) => {
   const data = req.body;
-  const userId = data.user;
-  const cart = data.cart;
-
-  const user = await userModel.findOne({ email: userId });
-  if (user) {
-    user.orders.push(cart);
-    await user.save();
+  const userId = data.id;
+  const cart = data.order;
+  if (userId) {
+    const newOrder = await orderModel.create({
+      orderDate: cart.orderDate,
+      items: cart.cart,
+      totalPrice: cart.totalPrice,
+      status: cart.status,
+      userId: cart.userId,
+    });
+    const user = await userModel.findByIdAndUpdate(userId, {
+      $push: { orders: newOrder.id },
+      $set: { cart: [] },
+    });
   }
 };
 
@@ -110,13 +142,13 @@ const login = async (req, res) => {
     const auth = await bcrypt.compare(password, user.password);
 
     if (auth) {
-      const token = generate(email);
+      const token = generate(email, user._id);
       res.cookie("authToken", token, { maxAge: 3600000, httpOnly: true });
       res.send({ status: "success", user: user, token: token });
     } else {
       res.send("incorrect username or password");
     }
-  }
+  } 
 };
 
 const getUser = async (req, res) => {
@@ -187,15 +219,13 @@ const addToCart = async (req, res) => {
 };
 
 const getCartCount = async (req, res) => {
-  const email = req.params.id;
-  const user = await userModel.findOne({ email: email });
-
+  const id = req.params.id;
+  const user = await userModel.findById(id);
   res.send(user);
 };
 const viewCart = async (req, res) => {
   const id = req.params.id;
-  const user = await userModel.findOne({ email: id });
-
+  const user = await userModel.findById(id);
   if (user.cart) {
     const cartItems = user.cart;
 
@@ -205,48 +235,72 @@ const viewCart = async (req, res) => {
 
 const removeCart = async (req, res) => {
   const userId = req.params.id;
-
   const prodId = req.params.prod;
-  const user = await userModel.findOne({ email: userId });
-  const id = user._id;
+  const user = await userModel.findById(userId);
 
-  const deleteItem = user.cart.filter((item) => item._id !== prodId);
-  if (deleteItem) {
-    const upatedUser = await userModel.findByIdAndUpdate(id, {
-      $set: { cart: deleteItem },
-    });
-    await upatedUser.save();
-    res.json({
-      message: "product successfully deleted",
-      data: upatedUser.cart,
-    });
+  try {
+    const deleteItem = user.cart.filter((item) => item._id != prodId);
+    if (deleteItem) {
+      const upatedUser = await userModel.findByIdAndUpdate(userId, {
+        $set: { cart: deleteItem },
+      });
+      await upatedUser.save();
+      res.json({
+        message: "product successfully deleted",
+        data: upatedUser.cart,
+      });
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 
 const handleQty = async (req, res) => {
   const qty = req.body.quantity;
+  const token = req.cookies;
   const userId = req.params.id;
   const prodId = req.params.prod;
-  const user = await userModel.findOne({ email: userId });
-  const index = user.cart.findIndex((item) => item._id == prodId);
 
-  if (index !== -1) {
-    await userModel.updateOne(
-      { _id: user._id, "cart._id": prodId },
-      { $set: { "cart.$.quantity": qty } }
-    );
-    const updatedUser = await userModel.findById(user._id);
+  const user = await userModel.findById(userId);
 
-    res.send(updatedUser.cart);
-  }
+  const updatedCart = user.cart.map((item) => {
+    if (item._id == prodId) {
+      return {
+        ...item,
+        quantity: qty,
+      };
+    }
+    return item;
+  });
+  const updatedUser = await userModel.findOneAndUpdate(
+    { _id: userId },
+    {
+      $set: {
+        cart: updatedCart,
+      },
+    }
+  );
+  res.send(updatedUser.cart);
 };
 
 const payment = async (req, res) => {
   const id = req.params.id;
-  const user = await userModel.findOne({ email: id });
+  const user = await userModel.findById(id);
   res.send(user);
 };
 
+const viewOrder = async (req, res) => {
+  const id = req.params.id;
+
+  const user = await userModel.findById(id).populate("orders");
+  res.send(user.orders);
+};
+
+const orderSpec = async (req, res) => {
+  const id = req.params.id;
+  const order = await orderModel.findById(id).populate("userId");
+  res.send(order);
+};
 module.exports = {
   register,
   verifyOTP,
@@ -264,4 +318,6 @@ module.exports = {
   payment,
   createPayment,
   cod,
+  viewOrder,
+  orderSpec,
 };
