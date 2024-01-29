@@ -13,7 +13,7 @@ app.use(cookies());
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://amazon-clone-front-end-sage.vercel.app",
     credentials: true,
   })
 );
@@ -24,7 +24,7 @@ app.use("/admin", adminRoute);
 app.listen(port, (req, res) => {
   console.log("app listening");
 });
-mongoose.connect("mongodb://localhost:27017/amazon");
+mongoose.connect("mongodb+srv://SanuRaj:vJHYX5XpmPCRmbYi@cluster0.wcy5y.mongodb.net/");
 app.listen(5000, () => {
   console.log("Mongodb Connected");
 });
