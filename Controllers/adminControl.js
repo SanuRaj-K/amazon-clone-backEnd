@@ -113,7 +113,7 @@ const stats = async (req, res) => {
   const totalRev = subTotal.toFixed(2);
   const categories = await productModel.distinct("Category");
   const categoriesLength = categories.length;
- 
+
   res.send({ prodLength, userlength, totalRev, categoriesLength });
 };
 
@@ -137,6 +137,48 @@ const orderStatus = async (req, res) => {
   res.send(order);
 };
 
+const chart = async (req, res) => {
+  const totalPriceByMonth = await orderModel.aggregate([
+    {
+      $match: {
+        status: "deliverd",
+      },
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: { format: "%Y-%m", date: "$orderDate" },
+        },
+        totalPrice: { $sum: "$totalPrice" },
+      },
+    },
+  ]);
+  const months = [
+    "jan",
+    "feb",
+    "mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const salesMonth = [];
+  const sales = [];
+  totalPriceByMonth.forEach((monthlySale) => {
+    const [year, month] = monthlySale._id.split("-");
+    const monthName = months[parseInt(month, 10) - 1];
+    salesMonth.push(monthName);
+    sales.push(monthlySale.totalPrice);
+  });
+  res.send({ month: salesMonth, sales: sales });
+};
+
 module.exports = {
   allUsers,
   allProducts,
@@ -152,4 +194,5 @@ module.exports = {
   orderDetails,
   getOrderDetailsbyId,
   orderStatus,
+  chart,
 };

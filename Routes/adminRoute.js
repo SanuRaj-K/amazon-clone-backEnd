@@ -15,6 +15,6 @@ router.get("/stats", adminControl.stats);
 router.get("/orderdetails", adminControl.orderDetails);
 router.get("/getuserorders/:id", adminControl.getOrderDetailsbyId);
 router.put("/updatestatus/:id/:status", adminControl.orderStatus);
-
+router.get("/chart", adminControl.chart);
 
 module.exports = router;

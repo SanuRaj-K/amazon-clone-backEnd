@@ -9,8 +9,14 @@ const cors = require("cors");
 const cookies = require("cookie-parser");
 const port = 3005;
 app.use(express.json());
-app.use(cookies()); 
+app.use(cookies());
 
+// app.use(
+//   cors({
+//     origin: "http://localhost:3000",
+//     credentials: true,
+//   })
+// );
 app.use(
   cors({
     origin: "https://amazon-clone-front-end-sage.vercel.app",
@@ -24,7 +30,14 @@ app.use("/admin", adminRoute);
 app.listen(port, (req, res) => {
   console.log("app listening");
 });
-mongoose.connect("mongodb+srv://SanuRaj:vJHYX5XpmPCRmbYi@cluster0.wcy5y.mongodb.net/");
+// mongoose.connect("mongodb://localhost:27017/amazon");
+// app.listen(5000, () => {
+//   console.log("Mongodb Connected");
+// });
+
+mongoose.connect(
+  "mongodb+srv://SanuRaj:vJHYX5XpmPCRmbYi@cluster0.wcy5y.mongodb.net/"
+);
 app.listen(5000, () => {
   console.log("Mongodb Connected");
 });
