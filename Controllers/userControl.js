@@ -293,16 +293,28 @@ const payment = async (req, res) => {
 
 const viewOrder = async (req, res) => {
   const id = req.params.id;
-
   const user = await userModel.findById(id).populate("orders");
   res.send(user.orders);
 };
 
 const orderSpec = async (req, res) => {
   const id = req.params.id;
-  const order = await orderModel.findOne({ orderId: id }).populate("userId");
+  const order = await orderModel
+    .findOne({ orderId: id })
+    .populate("userId")
+    .sort({ orderDate: -1 });
   res.send(order);
 };
+
+const orderPending = async (req, res) => {             
+  const id = req.params.id;    
+  const user = await userModel.findById(id).populate("orders");
+ 
+  const status=user.orders
+  const pending= status.filter((prod)=>prod.status==='pending')
+ res.send(pending)          
+};
+     
 module.exports = {
   register,
   verifyOTP,
@@ -322,4 +334,5 @@ module.exports = {
   cod,
   viewOrder,
   orderSpec,
+  orderPending,
 };

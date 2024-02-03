@@ -18,7 +18,8 @@ router.delete("/removecart/:id/:prod", userControl.removeCart);
 router.put("/handleqty/:id/:prod", userControl.handleQty);
 router.get("/payment/:id", userControl.payment);
 router.post("/createpayment", userControl.createPayment);
-router.post("/cod", userControl.cod);     
+router.post("/cod", userControl.cod);
 router.get("/orderspec/:id", userControl.orderSpec);
+router.get("/pendingOrder/:id", userControl.orderPending);
 
 module.exports = router;
