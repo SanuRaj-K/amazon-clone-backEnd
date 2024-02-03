@@ -123,7 +123,7 @@ const orderDetails = async (req, res) => {
 };
 const getOrderDetailsbyId = async (req, res) => {
   const id = req.params.id;
-  const orders = await orderModel.findById(id).populate("userId");
+  const orders = await orderModel.findOne({ orderId: id }).populate("userId");
   res.send(orders);
 };
 
@@ -131,9 +131,12 @@ const orderStatus = async (req, res) => {
   const orderId = req.params.id;
   const status = req.params.status;
 
-  const order = await orderModel.findByIdAndUpdate(orderId, {
-    $set: { status: status },
-  });
+  const order = await orderModel.findOneAndUpdate(
+    { orderId: orderId },
+    {
+      $set: { status: status },
+    }
+  );
   res.send(order);
 };
 

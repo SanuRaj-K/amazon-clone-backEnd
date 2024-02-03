@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
-   
   orderDate: {
     type: Date,
     required: true,
@@ -23,12 +22,12 @@ const orderSchema = new mongoose.Schema({
     ref: "users",
     required: true,
   },
+  orderId: {
+    type: String,
+    required: true,
+  },
 });
 
 const Order = mongoose.model("order", orderSchema);
 
 module.exports = Order;
-
-
-
-

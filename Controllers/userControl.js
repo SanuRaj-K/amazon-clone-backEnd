@@ -52,11 +52,13 @@ const cod = async (req, res) => {
       totalPrice: cart.totalPrice,
       status: cart.status,
       userId: cart.userId,
+      orderId: cart.orderId,
     });
     const user = await userModel.findByIdAndUpdate(userId, {
       $push: { orders: newOrder.id },
       $set: { cart: [] },
     });
+    console.log(newOrder);
   }
 };
 
@@ -148,7 +150,7 @@ const login = async (req, res) => {
     } else {
       res.send("incorrect username or password");
     }
-  } 
+  }
 };
 
 const getUser = async (req, res) => {
@@ -298,7 +300,7 @@ const viewOrder = async (req, res) => {
 
 const orderSpec = async (req, res) => {
   const id = req.params.id;
-  const order = await orderModel.findById(id).populate("userId");
+  const order = await orderModel.findOne({ orderId: id }).populate("userId");
   res.send(order);
 };
 module.exports = {
