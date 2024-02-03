@@ -8,6 +8,8 @@ const stripe = require("stripe")(stripSK);
 
 const createPayment = async (req, res) => {
   const data = req.body;
+  const cart = data.order;
+  const id= data.id
   const products = data.paymentUser;
   const lineItems = products.map((prod) => ({
     price_data: {
@@ -29,14 +31,19 @@ const createPayment = async (req, res) => {
     cancel_url: "http://localhost:3000/Account",
   });
   if (session.id) {
-    const userId = data.id;
-    const user = await userModel.findOne({ email: userId });
-    if (user) {
-      for (prod of products) {
-        user.orders.push(prod);
-        await user.save();
-      }
-    }
+    const newOrder = await orderModel.create({
+      orderDate: cart.orderDate,
+      items: cart.cart,
+      totalPrice: cart.totalPrice,
+      status: cart.status,
+      userId: id,
+      orderId: cart.orderId,
+    });
+
+    const user = await userModel.findByIdAndUpdate(id, {
+      $push: { orders: newOrder.id },
+      $set: { cart: [] },
+    });
   }
   res.send(session.id);
 };
@@ -306,15 +313,15 @@ const orderSpec = async (req, res) => {
   res.send(order);
 };
 
-const orderPending = async (req, res) => {             
-  const id = req.params.id;    
+const orderPending = async (req, res) => {
+  const id = req.params.id;
   const user = await userModel.findById(id).populate("orders");
- 
-  const status=user.orders
-  const pending= status.filter((prod)=>prod.status==='pending')
- res.send(pending)          
+
+  const status = user.orders;
+  const pending = status.filter((prod) => prod.status === "pending");
+  res.send(pending);
 };
-     
+
 module.exports = {
   register,
   verifyOTP,

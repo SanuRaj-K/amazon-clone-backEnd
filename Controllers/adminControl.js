@@ -125,6 +125,8 @@ const getOrderDetailsbyId = async (req, res) => {
   const id = req.params.id;
   const orders = await orderModel.findOne({ orderId: id }).populate("userId");
   res.send(orders);
+  
+   
 };
 
 const orderStatus = async (req, res) => {
