@@ -26,14 +26,14 @@ app.use(
 
 app.use("/users", userRoute);
 app.use("/admin", adminRoute);
-
+   
 app.listen(port, (req, res) => {
-  console.log("app listening");
+  console.log("app listening");  
 });
-mongoose.connect("mongodb://localhost:27017/amazon");
-app.listen(5000, () => {
-  console.log("Mongodb Connected");
-});
+// mongoose.connect("mongodb://localhost:27017/amazon");
+// app.listen(5000, () => {
+//   console.log("Mongodb Connected");
+// });
 
 mongoose.connect(
   "mongodb+srv://SanuRaj:vJHYX5XpmPCRmbYi@cluster0.wcy5y.mongodb.net/"
